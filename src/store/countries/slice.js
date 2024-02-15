@@ -1,0 +1,54 @@
+import { createSlice } from '@reduxjs/toolkit'
+import { sliceName } from './constants'
+import thunks from './thunks'
+
+const initialState = {
+    countries: [],
+    selectedCountry: null,
+    selectedTranslation: null,
+}
+
+export const slice = createSlice({
+    name: sliceName,
+    initialState,
+    reducers: {
+        setCountry(state, { payload }) {
+            if (payload) {
+                state.selectedCountry = state.countries.find((item) => item.id === payload)
+            } else {
+                if (!state.selectedCountry) {
+                    state.selectedCountry = state.countries[0];
+                }
+            }
+        },
+        setDefaultCountry(state) {
+            state.selectedCountry = null;
+        },
+        setTranslation(state, { payload }) {
+            if (payload) {
+                state.selectedTranslation = payload
+            } else {
+                if (state.selectedCountry) {
+                    state.selectedTranslation = Object.keys(state.selectedCountry.translations)[0]
+                }
+            }
+        },
+
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(thunks.fetchCountries.fulfilled, (state, { payload }) => {
+                state.countries = payload
+            })
+            .addCase(thunks.fetchCountry.fulfilled, (state, { payload }) => {
+                state.selectedCountry = payload
+            })
+            .addCase(thunks.deleteCountry.fulfilled, (state, { payload }) => {
+                state.selectedCountry = null,
+                    state.countries = state.countries.filter((item) => item.id !== payload)
+            })
+    },
+})
+
+export const { countries, setCountry, setDefaultCountry, setTranslation } = slice.actions
+export default slice.reducer
